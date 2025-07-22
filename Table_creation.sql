@@ -1,0 +1,130 @@
+
+CREATE TABLE customers (
+    customer_id SERIAL PRIMARY KEY,
+    name VARCHAR(100),
+    city VARCHAR(50),
+    signup_date DATE
+);
+
+
+CREATE TABLE orders (
+    order_id SERIAL PRIMARY KEY,
+    customer_id INT REFERENCES customers(customer_id),
+    order_date DATE,
+    amount DECIMAL(10, 2),
+    status VARCHAR(20)
+);
+
+
+CREATE TABLE products (
+    product_id SERIAL PRIMARY KEY,
+    name VARCHAR(100),
+    category VARCHAR(50),
+    price DECIMAL(10, 2)
+);
+
+
+CREATE TABLE order_items (
+    item_id SERIAL PRIMARY KEY,
+    order_id INT REFERENCES orders(order_id),
+    product_id INT REFERENCES products(product_id),
+    quantity INT
+);
+
+-- Customers
+INSERT INTO customers (name, city, signup_date) VALUES
+('Nandan', 'Bangalore', '2023-01-15'),
+('Ravi', 'Mumbai', '2023-02-20'),
+('Priya', 'Delhi', '2023-03-05'),
+('Sara', 'Bangalore', '2023-01-25'),
+('Arjun', 'Chennai', '2023-04-10');
+
+-- Products
+INSERT INTO products (name, category, price) VALUES
+('Laptop', 'Electronics', 80000),
+('Phone', 'Electronics', 50000),
+('Keyboard', 'Accessories', 2000),
+('Shoes', 'Fashion', 3000),
+('Watch', 'Fashion', 7000);
+
+-- Orders
+INSERT INTO orders (customer_id, order_date, amount, status) VALUES
+(1, '2023-05-01', 82000, 'Delivered'),
+(2, '2023-05-03', 50000, 'Cancelled'),
+(3, '2023-05-04', 52000, 'Delivered'),
+(1, '2023-06-10', 9000, 'Delivered'),
+(4, '2023-06-11', 3000, 'Pending');
+
+-- Order_Items
+INSERT INTO order_items (order_id, product_id, quantity) VALUES
+(1, 1, 1),  -- Laptop
+(1, 3, 1),  -- Keyboard
+(2, 2, 1),  -- Phone
+(3, 2, 1),  -- Phone
+(3, 4, 1),  -- Shoes
+(4, 5, 1),  -- Watch
+(5, 4, 1);  -- Shoes
+
+-- 1) Get the names of all customers from Bangalore.
+SELECT name 
+FROM customers
+WHERE city = 'Bangalore';
+
+--2) List all orders with amount > 50000, sorted by amount descending.
+SELECT *
+FROM orders
+WHERE amount > 50000
+ORDER BY amount DESC;
+
+--3) Find the names of customers who placed an order that was 'Delivered'.
+SELECT cust.name
+FROM customers cust
+JOIN orders ord ON cust.customer_id = ord.customer_id
+WHERE ord.status = 'Delivered';
+
+--4) Get the name and price of all products in the 'Fashion' category.
+SELECT name, price
+FROM products
+WHERE category = 'Fashion';
+
+--5) List the first 3 orders (by order_date) that are not 'Cancelled'.
+SELECT *
+FROM orders
+WHERE status != 'Cancelled'
+ORDER BY order_date ASC
+LIMIT 3;
+
+--6) Find all orders placed by the customer named 'Nandan'. Show order_id and order_date.
+SELECT ord.order_id, ord.order_date
+FROM orders ord
+JOIN customers cust ON cust.customer_id = ord.customer_id
+WHERE cust.name = 'Nandan';
+
+-- 7) List all unique cities where customers are located
+SELECT DISTINCT city
+FROM customers;
+
+--8) Find all products that belong to a category starting with 'Fas'
+SELECT name
+FROM products
+WHERE category LIKE 'Fas%';
+
+--9) Get all customers who signed up between '2023-01-01' and '2023-03-01'
+SELECT name
+FROM customers
+WHERE signup_date BETWEEN '2023-01-01' AND '2023-03-01';
+
+--10) List all orders with status either 'Delivered' or 'Pending'
+SELECT *
+FROM orders
+WHERE status IN ('Delivered', 'Pending')
+
+--11) Find product names whose category is not in ('Electronics', 'Fashion')
+SELECT name
+FROM products
+WHERE category NOT IN ('Electronics', 'Fashion');
+
+
+
+
+
