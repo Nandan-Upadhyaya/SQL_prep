@@ -149,13 +149,62 @@ FROM orders ord
 GROUP BY ord.status;
 
 --16) Find customers who have spent more than ₹70,000 in total (based on delivered orders only).
-
 SELECT cust.name, SUM(ord.amount) AS total_spent
 FROM customers cust
 JOIN orders ord ON cust.customer_id = ord.customer_id
 WHERE ord.status = 'Delivered'
 GROUP BY cust.name
 HAVING SUM(ord.amount) > 70000;
+
+--17) List all order IDs along with the customer name who placed them and the order amount.
+SELECT ord.order_id, cust.name, ord.amount
+FROM orders ord
+JOIN customers cust ON cust.customer_id = ord.customer_id;
+
+--18) Show the product names and quantities ordered in each order (Include the order ID and customer name)
+SELECT pro.name, oi.quantity, oi.order_id, cust.name
+FROM products pro
+JOIN order_items oi ON oi.product_id = pro.product_id
+JOIN orders ord ON ord.order_id = oi.order_id
+JOIN customers cust on cust.customer_id = ord.customer_id
+GROUP BY pro.name, oi.quantity, oi.order_id, cust.name;
+
+--19) For each order, show Order ID, Total number of items ordered and Total order amount
+SELECT oi.order_id, SUM(oi.quantity) as total_items, SUM(pro.price * oi.quantity) as Total_order_amount
+FROM order_items oi
+JOIN products pro ON pro.product_id = oi.product_id
+GROUP BY oi.order_id;
+
+/* The "LEFT JOIN + IS NULL" combo is a universal template in SQL for:
+
+🔍 Detecting Absence, Missingness, or Non-Participation
+If the question sounds like:
+
+“Find who never did something”
+
+“Find entries that don’t have related records”
+
+“Find rows where something is missing”
+
+“Find products that were not ordered”
+
+“Customers who didn't buy anything”
+
+“Orders with no items”
+
+*/
+
+--20) List all customers who have never placed an order.
+SELECT cust.name
+FROM customers cust
+LEFT JOIN orders ord on ord.customer_id = cust.customer_id
+WHERE ord.order_id IS NULL;
+
+--21) Show all orders with no items (edge case: orders that exist in orders table but no matching rows in order_items).
+SELECT ord.order_id, ord.amount
+FROM orders ord
+LEFT JOIN order_items oi ON ord.order_id = oi.order_id
+WHERE oi.item_id IS NULL;
 
 
 
