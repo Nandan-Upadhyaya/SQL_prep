@@ -167,7 +167,7 @@ FROM products pro
 JOIN order_items oi ON oi.product_id = pro.product_id
 JOIN orders ord ON ord.order_id = oi.order_id
 JOIN customers cust on cust.customer_id = ord.customer_id
-GROUP BY pro.name, oi.quantity, oi.order_id, cust.name;
+
 
 --19) For each order, show Order ID, Total number of items ordered and Total order amount
 SELECT oi.order_id, SUM(oi.quantity) as total_items, SUM(pro.price * oi.quantity) as Total_order_amount
@@ -205,6 +205,68 @@ SELECT ord.order_id, ord.amount
 FROM orders ord
 LEFT JOIN order_items oi ON ord.order_id = oi.order_id
 WHERE oi.item_id IS NULL;
+
+--22) List the names of customers who have placed more than 1 order.
+SELECT cust.name
+FROM customers cust
+JOIN orders ord on cust.customer_id = ord.customer_id
+GROUP BY cust.name
+HAVING COUNT(ord.order_id) > 1;
+
+--23)  Show the names of customers whose total delivered order amount is greater than the average order amount of all customers.
+SELECT cust.name
+FROM customers cust
+JOIN orders ord ON cust.customer_id = ord.customer_id
+WHERE ord.status = 'Delivered'
+GROUP BY cust.name
+HAVING SUM(ord.amount) > (
+                                       SELECT AVG(amount) AS average_order_amount
+                                       FROM orders
+                                       WHERE status = 'Delivered'
+                                       
+);
+
+--24) Find the names of products that have never been ordered.
+SELECT pro.name
+FROM products pro
+LEFT JOIN order_items oi ON oi.product_id = pro.product_id
+WHERE oi.order_id IS NULL;
+
+--25) Show the customers who ordered all products in the 'Fashion' category.
+SELECT DISTINCT cust.name
+FROM customers cust
+WHERE NOT EXISTS (
+                   SELECT *
+                   FROM products pro
+                   WHERE category = 'Fashion' 
+                   AND pro.product_id NOT IN (
+                   
+                                                SELECT oi.product_id
+                                                FROM orders o
+                                                JOIN order_items oi ON o.order_id = oi.order_id
+                                                WHERE o.customer_id = cust.customer_id
+                   )
+);
+
+--26) List all products where the total quantity sold is greater than 1, along with total quantity.
+SELECT pro.name, SUM(oi.quantity) AS total_quantity
+FROM products pro
+JOIN order_items oi ON oi.product_id = pro.product_id
+GROUP BY pro.name
+HAVING SUM(oi.quantity) > 1;
+
+--27) Show customers who placed an order where every item in that order was from the 'Electronics' category.
+SELECT DISTINCT cust.name
+FROM customers cust
+JOIN orders ord ON ord.customer_id = cust.customer_id
+WHERE NOT EXISTS (
+    SELECT 1
+    FROM order_items oi
+    JOIN products p ON p.product_id = oi.product_id
+    WHERE oi.order_id = ord.order_id AND p.category != 'Electronics'
+);
+
+
 
 
 
